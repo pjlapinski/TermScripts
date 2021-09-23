@@ -1,0 +1,105 @@
+#!/usr/bin/python
+import requests
+from pathlib import Path
+import sys
+
+HOME_DIR = Path.home()
+ID_FILE = Path(f'{HOME_DIR}/.config/NotionTODO/id.txt')
+AUTH_FILE = Path(f'{HOME_DIR}/.config/NotionTODO/auth.txt')
+
+
+def get_authentication_token() -> str:
+    with open(AUTH_FILE) as f:
+        return f.readline()
+
+
+def get_page_id() -> str:
+    with open(ID_FILE) as f:
+        return f.readline()
+
+
+def file_exists_and_not_empty(path: Path) -> bool:
+    if not path.is_file():
+        return False
+    with open(path) as f:
+        return len(f.readlines()) > 0
+
+
+def ensure_auth_file_exists():
+    if file_exists_and_not_empty(AUTH_FILE):
+        return
+    AUTH_FILE.touch(exist_ok=True)
+    token = input('Please input the bearer token: ')
+    with open(AUTH_FILE, 'w') as f:
+        f.write(token)
+
+
+def ensure_id_file_exists():
+    if file_exists_and_not_empty(ID_FILE):
+        return
+    url = input('Please input the page id: ')
+    ID_FILE.touch(exist_ok=True)
+    with open(ID_FILE, 'w') as f:
+        f.write(url)
+
+
+def make_request(page_id: str, auth: str, indent: int = 0) -> dict[str, str]:
+    url = f'https://api.notion.com/v1/blocks/{page_id}/children'
+    headers = {'Notion-Version': '2021-08-16',
+               'Authorization': f'Bearer {auth}'}
+    res = requests.get(url, headers=headers)
+    if res.status_code != 200:
+        print(f'Error: {res.status_code} request status code')
+    results = []
+    for node in res.json()['results']:
+        todo = node['to_do']
+        obj = {
+            'id': node['id'],
+            'indent': indent,
+            'checked': todo['checked'],
+            'text': '\n'.join([t['plain_text'] for t in todo['text']]),
+        }
+        results.append(obj)
+        if node['has_children']:
+            results.extend(make_request(obj['id'], auth, indent + 1))
+    return results
+
+
+def pprint(todos: list[dict[str, str]]):
+    print('TODOs:\n')
+    if len(todos) == 0:
+        print('No TODOs!')
+        return
+    for todo in todos:
+        print(
+            f'{" " * 4 * todo["indent"]}{"[X]" if todo["checked"] else "[ ]"} {todo["text"]}')
+
+
+def get_and_exec():
+    page_id = get_page_id()
+    auth = get_authentication_token()
+    todos = make_request(page_id, auth)
+    pprint(todos)
+
+
+def has_silent_flag() -> bool:
+    return any([arg == '--silent' for arg in sys.argv])
+
+
+def main():
+    config_dir = Path(f'{HOME_DIR}/.config/NotionTODO')
+    if has_silent_flag():
+        if not config_dir.exists():
+            return
+        if not file_exists_and_not_empty(ID_FILE) or not file_exists_and_not_empty(AUTH_FILE):
+            return
+        get_and_exec()
+        return
+    config_dir.mkdir(parents=True, exist_ok=True)
+    ensure_auth_file_exists()
+    ensure_id_file_exists()
+    get_and_exec()
+
+
+if __name__ == '__main__':
+    main()
