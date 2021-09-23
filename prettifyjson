@@ -1,0 +1,27 @@
+#!/usr/bin/python
+
+import json
+import sys
+
+
+def main():
+    if len(sys.argv) == 1:
+        print('Provide the file to be prettified')
+        exit()
+
+    filename = sys.argv[1]
+
+    if '.json' not in filename:
+        print('The file must be a .json file')
+        exit()
+
+    with open(filename, 'r+') as f:
+        result = json.load(f)
+        f.seek(0)
+        f.truncate()
+        f.write(json.dumps(result, indent=4))
+
+
+if __name__ == '__main__':
+    main()
+
