@@ -4,6 +4,10 @@ import random
 import sys
 
 
+def main():
+    print(''.join(map(lambda x: x.upper() if random.randint(0, 1) == 0 else
+                      x.lower(), ' '.join(sys.argv[1:]))))
+
+
 if __name__ == '__main__':
-    print(''.join(map(lambda x: x.upper() if random.randint(
-        0, 1) == 0 else x.lower(), ' '.join(sys.argv[1:]))))
+    main()
