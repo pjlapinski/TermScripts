@@ -54,9 +54,15 @@ def make_request(page_id: str, auth: str, indent: int = 0) -> dict[str, str]:
     url = f'https://api.notion.com/v1/blocks/{page_id}/children'
     headers = {'Notion-Version': '2021-08-16',
                'Authorization': f'Bearer {auth}'}
-    res = requests.get(url, headers=headers)
+    try:
+        res = requests.get(url, headers=headers, timeout=1)
+    except Exception:
+        if not has_silent_flag():
+            print('Request to Notion timed out')
+        return None
     if res.status_code != 200:
         print(f'Error: {res.status_code} request status code')
+        return None
     results = []
     for node in res.json()['results']:
         todo = node['to_do']
@@ -86,6 +92,8 @@ def get_and_exec():
     page_id = get_page_id()
     auth = get_authentication_token()
     todos = make_request(page_id, auth)
+    if todos is None:
+        return
     pprint(todos)
 
 
