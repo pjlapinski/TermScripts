@@ -4,22 +4,32 @@ import json
 import sys
 
 
-def main():
-    if len(sys.argv) == 1:
-        print('Provide the file to be prettified')
-        exit()
+def has_write_flag() -> bool:
+    return any([arg == '-w' for arg in sys.argv])
 
-    filename = sys.argv[1]
+
+def main():
+    override = has_write_flag()
+    args = list(filter(lambda el: el != '-w', sys.argv))
+
+    if len(args) == 1:
+        print('Provide the file to be prettified')
+        return
+    filename = args[1]
 
     if '.json' not in filename:
         print('The file must be a .json file')
-        exit()
+        return
 
-    with open(filename, 'r+') as f:
+    with open(filename, 'r') as f:
         result = json.load(f)
-        f.seek(0)
-        f.truncate()
-        f.write(json.dumps(result, indent=4))
+    pretty = json.dumps(result, indent=4)
+
+    if (override):
+        with open(filename, 'w') as f:
+            f.write(pretty + '\n')
+    else:
+        print(pretty)
 
 
 if __name__ == '__main__':
