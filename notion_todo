@@ -6,6 +6,15 @@ import sys
 HOME_DIR = Path.home()
 ID_FILE = Path(f'{HOME_DIR}/.config/NotionTODO/id.txt')
 AUTH_FILE = Path(f'{HOME_DIR}/.config/NotionTODO/auth.txt')
+TODOS_TEXT = '\n'.join(r'''
+  _____  _____ ______  _____
+ |_   _||  _  ||  _  \|  _  |
+   | |  | | | || | | || | | | ___
+   | |  | | | || | | || | | |/ __|
+   | |  \ \_/ /| |/ / \ \_/ /\__ \
+   \_/   \___/ |___/   \___/ |___/
+
+'''.splitlines()[1:])
 
 
 def get_authentication_token() -> str:
@@ -28,7 +37,6 @@ def file_exists_and_not_empty(path: Path) -> bool:
 def ensure_auth_file_exists():
     if file_exists_and_not_empty(AUTH_FILE):
         return
-    AUTH_FILE.touch(exist_ok=True)
     token = input('Please input the bearer token: ')
     with open(AUTH_FILE, 'w') as f:
         f.write(token)
@@ -38,7 +46,6 @@ def ensure_id_file_exists():
     if file_exists_and_not_empty(ID_FILE):
         return
     url = input('Please input the page id: ')
-    ID_FILE.touch(exist_ok=True)
     with open(ID_FILE, 'w') as f:
         f.write(url)
 
@@ -66,7 +73,7 @@ def make_request(page_id: str, auth: str, indent: int = 0) -> dict[str, str]:
 
 
 def pprint(todos: list[dict[str, str]]):
-    print('TODOs:\n')
+    print(TODOS_TEXT)
     if len(todos) == 0:
         print('No TODOs!')
         return
