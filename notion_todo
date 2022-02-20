@@ -65,7 +65,8 @@ def make_request(page_id: str, auth: str, indent: int = 0) -> dict[str, str]:
         return None
     results = []
     for node in res.json()['results']:
-        todo = node['to_do']
+        if (todo := node.get('to_do')) is None:
+            continue
         obj = {
             'id': node['id'],
             'indent': indent,
