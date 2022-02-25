@@ -6,16 +6,6 @@ import sys
 HOME_DIR = Path.home()
 ID_FILE = Path(f'{HOME_DIR}/.config/NotionTODO/id.txt')
 AUTH_FILE = Path(f'{HOME_DIR}/.config/NotionTODO/auth.txt')
-TODOS_TEXT = '\n'.join(r'''
-  _____  _____ ______  _____
- |_   _||  _  ||  _  \|  _  |
-   | |  | | | || | | || | | | ___
-   | |  | | | || | | || | | |/ __|
-   | |  \ \_/ /| |/ / \ \_/ /\__ \
-   \_/   \___/ |___/   \___/ |___/
-
-'''.splitlines()[1:])
-
 
 def get_authentication_token() -> str:
     with open(AUTH_FILE) as f:
@@ -80,7 +70,6 @@ def make_request(page_id: str, auth: str, indent: int = 0) -> dict[str, str]:
 
 
 def pprint(todos: list[dict[str, str]]):
-    print(TODOS_TEXT)
     if len(todos) == 0:
         print('No TODOs!')
         return
